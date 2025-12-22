@@ -27,6 +27,7 @@ jobs:
           fail-on-issues: false
           command: code test
           additional-arguments: --json-file-output=code-results.json
+          token-variable: SNYK_TOKEN
       - run:
           name: Generate Snyk HTML report
           command: cat code-results.json | snyk-to-html -o code-report.html
