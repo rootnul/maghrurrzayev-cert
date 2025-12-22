@@ -1,46 +1,50 @@
 version: 2.1
+
 orbs:
   snyk: snyk/snyk@2.3.0
 
 jobs:
-  snyk-security-scan:
+  snyk-scan:
     docker:
       - image: cimg/openjdk:11.0-node
     steps:
       - checkout
+
       - run:
-          name: Install Snyk to HTML
-          command: npm install -g snyk-to-html
-      
+          name: Install snyk-to-html
+          command: npm install --prefix=$HOME/.local -g snyk-to-html
+
       - snyk/scan:
           name: Snyk Open Source Scan
           command: test
           fail-on-issues: false
           monitor-on-build: false
-          token-variable: SNYK_TOKEN
           additional-arguments: --json-file-output=oss-results.json
+          token-variable: SNYK_TOKEN
+
+      - run:
+          name: Generate Snyk Open Source HTML report
+          command: cat oss-results.json | snyk-to-html -o oss-report.html
 
       - snyk/scan:
           name: Snyk Code Scan
           command: code test
           fail-on-issues: false
           monitor-on-build: false
-          token-variable: SNYK_TOKEN
           additional-arguments: --json-file-output=code-results.json
+          token-variable: SNYK_TOKEN
 
       - run:
-          name: Generate HTML reports
-          when: always
-          command: |
-            snyk-to-html -i oss-results.json -o oss-report.html
-            snyk-to-html -i code-results.json -o code-report.html
-      
+          name: Generate Snyk Code HTML report
+          command: cat code-results.json | snyk-to-html -o code-report.html
+
       - store_artifacts:
           path: oss-report.html
+
       - store_artifacts:
           path: code-report.html
 
 workflows:
-  security-workflow:
+  snyk-only:
     jobs:
-      - snyk-security-scan
+      - snyk-scan
