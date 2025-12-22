@@ -15,4 +15,7 @@ jobs:
       - run:
           command: snyk code test
           name: Run code scan
-workflows: null
+workflows:
+  security_workflow:
+    jobs:
+      - security_scan
