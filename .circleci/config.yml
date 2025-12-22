@@ -2,20 +2,23 @@ version: '2.1'
 orbs:
   snyk: snyk/snyk@2.3.0
 jobs:
-  security_scan:
+  build:
     docker:
-      - image: cimg/node:18.17.1
+    - image: 'circleci/buildpack-deps:stretch'
+    environment:
+      IMAGE_NAME: docker-goof
     steps:
       - checkout
-      - run: npm install
-      - snyk/install
+      - setup_remote_docker
       - run:
-          command: snyk version
-          name: Which version of snyk is installed
-      - run:
-          command: snyk code test
-          name: Run code scan
-workflows:
-  security_workflow:
-    jobs:
-      - security_scan
+          command: 'docker build -t $IMAGE_NAME:test .'
+          name: Build Docker image
+      - snyk/scan:
+          docker-image-name: '$IMAGE_NAME:test'
+          fail-on-issues: false
+          monitor-on-build: true
+          project: '${CIRCLE_PROJECT_REPONAME}/${CIRCLE_BRANCH}-container'
+          severity-threshold: high
+          target-file: Dockerfile
+          token-variable: SNYK_TOKEN
+workflows: null
