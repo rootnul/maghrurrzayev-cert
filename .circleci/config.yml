@@ -2,7 +2,7 @@ version: '2.1'
 orbs:
   snyk: snyk/snyk@2.3.0
 jobs:
-  build:
+  security_scan:
     docker:
       - image: cimg/node:lts
     steps:
